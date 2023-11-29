@@ -31,8 +31,8 @@ namespace Snake
         {
             {Direction.Up, 0 },
             {Direction.Right, 90 },
-            {Direction.Left, 180 },
-            {Direction.Down, 270 },
+            {Direction.Down, 180 },
+            {Direction.Left, 270 },
         };
 
         private readonly int rows= 15, cols = 15;

@@ -129,7 +129,7 @@ namespace Snake
 
         private bool OutsideGrid(Position pos)
         {
-            return pos.Row < 0 || pos.Col >= Rows || pos.Col < 0 || pos.Col >= Cols;
+            return pos.Row < 0 || pos.Row >= Rows || pos.Col < 0 || pos.Col >= Cols;
         }
 
         private GridValue WillHit(Position newHeadPos)
