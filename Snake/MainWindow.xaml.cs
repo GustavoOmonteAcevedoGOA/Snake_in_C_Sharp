@@ -38,7 +38,6 @@ namespace Snake
         private readonly int rows= 15, cols = 25;
         private readonly Image[,] gridImages;
         private GameState gameState;
-        private bool gameRunning;
 
         public MainWindow()
         {
@@ -59,22 +58,34 @@ namespace Snake
 
         private async void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (Overlay.Visibility == Visibility.Visible)
+            if (Overlay.Visibility == Visibility.Visible && gameState.Mode != GameMode.Paused)
             {
                 e.Handled = true;
             }
-            if (!gameRunning)
+            if (gameState.Mode == GameMode.NotStarted)
             {
-                gameRunning = true;
+                gameState.StartGame();
                 await RunGame();
-                gameRunning = false;
+                gameState.WaitingForNewGame();
             }
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if (gameState.GameOver)
+            if (gameState.Mode == GameMode.Over || gameState.Mode == GameMode.NotStarted)
             {
+                return;
+            }
+
+            if (gameState.Mode == GameMode.Started && e.Key == Key.Space)
+            {
+                gameState.PauseGame();
+                return;
+            }
+
+            if (gameState.Mode == GameMode.Paused && e.Key == Key.Space)
+            {
+                gameState.ResumeGame();
                 return;
             }
 
@@ -97,11 +108,23 @@ namespace Snake
 
         private async Task GameLoop()
         {
-            while (!gameState.GameOver)
+            while (gameState.Mode != GameMode.NotStarted && 
+                gameState.Mode != GameMode.Over)
             {
                 await Task.Delay(100);
-                gameState.Move();
-                Draw();
+                if (gameState.Mode == GameMode.Started)
+                {
+                    gameState.Move();
+                    Draw();
+                }
+                else if (gameState.Mode == GameMode.Paused)
+                {
+                    ShowPausedScreen();
+                }
+                else if (gameState.Mode == GameMode.Resuming)
+                {
+                    await HidePausedScreen();
+                }
             }
         }
 
@@ -189,6 +212,31 @@ namespace Snake
             await Task.Delay(1000);
             Overlay.Visibility = Visibility.Visible;
             OverlayText.Text = "PRESS ANY KEY TO START";
+            gameState.WaitingForNewGame();
+        }
+
+        private void ShowPausedScreen()
+        {
+            Overlay.Visibility = Visibility.Visible;
+            OverlayText.Text = "[ P A U S E D ]";
+        }
+
+        private async Task HidePausedScreen()
+        {
+            OverlayText.Text = "[ R E S U M I N G . . . ]";
+            await Task.Delay(500);
+            
+            for (int i = 3; i >= 1; i--)
+            {
+                OverlayText.Text = i.ToString();
+                await Task.Delay(500);
+            }
+
+            Overlay.Visibility = Visibility.Hidden;
+            OverlayText.Text = "";
+
+            gameState.StartGame();
+
         }
     }
 }

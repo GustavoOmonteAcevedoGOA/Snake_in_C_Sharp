@@ -14,7 +14,7 @@ namespace Snake
         public GridValue[,] Grid { get; }
         public Direction Dir { get; private set; }
         public int Score { get; private set; }
-        public bool GameOver { get; private set; }
+        public GameMode Mode { get; private set; }
 
         private readonly LinkedList<Direction> dirChanges = new LinkedList<Direction>();
         private readonly LinkedList<Position> snakePositions = new LinkedList<Position>();
@@ -26,7 +26,7 @@ namespace Snake
             Cols = cols;
             Grid = new GridValue[rows, cols];
             Dir = Direction.Right;
-
+            Mode = GameMode.NotStarted;
             AddSnake();
             AddFood();
         }
@@ -68,6 +68,31 @@ namespace Snake
 
             Position pos = empty[random.Next(empty.Count)];
             Grid[pos.Row, pos.Col] = GridValue.Food;
+        }
+
+        public void StartGame()
+        {
+            Mode = GameMode.Started;
+        }
+
+        public void FinishGame()
+        {
+            Mode = GameMode.Over;
+        }
+
+        public void PauseGame()
+        {
+            Mode = GameMode.Paused;
+        }
+        
+        public void ResumeGame()
+        {
+            Mode = GameMode.Resuming;
+        }
+
+        public void WaitingForNewGame()
+        {
+            Mode = GameMode.NotStarted;
         }
 
         public Position HeadPostion()
@@ -160,7 +185,7 @@ namespace Snake
 
             if (hit == GridValue.Outside || hit == GridValue.Snake)
             {
-                GameOver = true;
+                Mode = GameMode.Over;
             }
             else if (hit == GridValue.Empty)
             {
